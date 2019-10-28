@@ -126,7 +126,7 @@ HttpWebHooksPlatform.prototype = {
         response.statusCode = 200;
         response.setHeader('Content-Type', 'application/json');
 
-        if (!theUrlParams.accessoryId) {
+        if (!theUrlParams.accessoryId && theUrlParams.state !== undefined) {
           response.statusCode = 404;
           response.setHeader("Content-Type", "text/plain");
           var errorText = "[ERROR Http WebHook Server] No accessoryId in request.";
@@ -138,10 +138,15 @@ HttpWebHooksPlatform.prototype = {
           var responseBody = {
             success : true
           };
+          var allAccessoriesResponseBody = {
+            success: true,
+            accessories: {},
+          };
           var accessoryId = theUrlParams.accessoryId;
+          var showAllAccessories = accessoryId === undefined;
           for (var i = 0; i < accessoriesCount; i++) {
             var accessory = accessories[i];
-            if (accessory.id === accessoryId) {
+            if (accessory.id === accessoryId || showAllAccessories) {
               if (accessory.type == "thermostat") {
                 if (theUrlParams.currenttemperature != null) {
                   var cachedCurTemp = this.storage.getItemSync("http-webhook-current-temperature-" + accessoryId);
@@ -420,11 +425,23 @@ HttpWebHooksPlatform.prototype = {
                     }
                   }
                 }
-                break;
+
+                if (!showAllAccessories) {
+                  break;
+                }
               }
             }
+
+            if (showAllAccessories) {
+              allAccessoriesResponseBody.accessories[accessory.id] = responseBody;
+            }
           }
-          response.write(JSON.stringify(responseBody));
+
+          if (showAllAccessories) {
+            response.write(JSON.stringify(allAccessoriesResponseBody));
+          } else {
+            response.write(JSON.stringify(responseBody));
+          }
           response.end();
         }
       }).bind(this));
