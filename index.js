@@ -146,6 +146,9 @@ HttpWebHooksPlatform.prototype = {
           var showAllAccessories = accessoryId === undefined;
           for (var i = 0; i < accessoriesCount; i++) {
             var accessory = accessories[i];
+            if (showAllAccessories) {
+              accessoryId = accessory.id;
+            }
             if (accessory.id === accessoryId || showAllAccessories) {
               if (accessory.type == "thermostat") {
                 if (theUrlParams.currenttemperature != null) {
@@ -433,7 +436,7 @@ HttpWebHooksPlatform.prototype = {
             }
 
             if (showAllAccessories) {
-              allAccessoriesResponseBody.accessories[accessory.id] = responseBody;
+              allAccessoriesResponseBody.accessories[accessoryId] = responseBody;
             }
           }
 
